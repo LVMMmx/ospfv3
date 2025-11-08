@@ -1,4 +1,4 @@
-name: ipv6cisco
+name: ospfv3
 
 mgmt:
   network: mgmt
@@ -7,78 +7,26 @@ mgmt:
 topology:
   nodes:
  
-    
-    ciscorouter:
+    router1:
       kind: cisco_iol
-      image: vrnetlab/cisco_iol:17.12.01
-      startup-config: config.partial
-      binds:
-       - config/disable_ipv6_ra.sh:/iol/disable_ipv6_ra.sh
-      exec:
-        - chmod +x /iol/disable_ipv6_ra.sh
-        - bash /iol/disable_ipv6_ra.sh 
-
-    arubaaccess:
-      kind: aruba_aoscx 
-      image: vrnetlab/aruba_arubaos-cx:20210610000730
-      startup-config: cfgaccess.txt       
-                 
-    srvweb:
-       kind: linux
-       image: docker.io/esanchezv/srvhttps:latest
-       binds:
-        #- config/serverweb.sh:/root/serverweb.sh
-        - config/web-server.html:/var/www/localhost/htdocs/index.html
-       #- config/webinar-ipv6-lacnic-parte1y2.zip:/var/www/localhost/htdocs/webinar-ipv6-lacnic-parte1y2.zip
-       exec:
-       #- nginx
-       #- ip -6 route del default dev eth0
-        - ip -6 addr add 2001:db8:d1::50/64 dev eth1
-        - ip -6 route add 2001:db8:20::/64 via 2001:db8:d1::1    
+      image: docker.io/arthurk99/cisco-iol:17.15.01
+      #startup-config: config/config-r1.partial
     
-    PC1:
-      kind: linux
-      image: docker.io/esanchezv/kaliipv6:latest
-      exec:
-      - ip -6 route del default dev eth0
+    router2:
+      kind: cisco_iol
+      image: docker.io/arthurk99/cisco-iol:17.15.01
+      #startup-config: config/config-r2.partial
       
-    PC2:
-      kind: linux
-      image: ghcr.io/hellt/network-multitool
-      #binds:
-       #- config/client.sh:/root/client.sh
-      #exec:
-      #- ip -6 route del default dev eth0
-      #- chmod +x /root/client.sh
-      #- bash /root/client.sh
-      
-    PC3:
-      kind: linux
-      image: docker.io/esanchezv/kaliipv6:latest
-      exec:
-      - ip -6 route del default dev eth0
-            
-    PC4:
-      kind: linux
-      image: ghcr.io/hellt/network-multitool
-      #binds:
-       #- config/client.sh:/root/client.sh
-      #exec:
-      #- ip -6 route del default dev eth0
-      #- chmod +x /root/client.sh
-      #- bash /root/client.sh
-      
-           
+    router3:
+      kind: cisco_iol
+      image: docker.io/arthurk99/cisco-iol:17.15.01
+      #startup-config: config/config-r3.partial       
+  
   links:
-    - endpoints: ["ciscorouter:Ethernet0/2","srvweb:eth1"]
+    - endpoints: ["router1:Ethernet0/1","router2:Ethernet0/1"]
       mtu: 1500
-    - endpoints: ["ciscorouter:Ethernet0/1","arubaaccess:eth1"]
+    - endpoints: ["router1:Ethernet0/2","router3:Ethernet0/1"]
       mtu: 1500
-    - endpoints: ["arubaaccess:eth2","PC1:eth1"]
+    - endpoints: ["router2:Ethernet0/2","router3:Ethernet0/2"]
       mtu: 1500
-    - endpoints: ["arubaaccess:eth3","PC2:eth1"]
-      mtu: 1500
-    - endpoints: ["arubaaccess:eth4","PC3:eth1"]
-      mtu: 1500
-    - endpoints: ["arubaaccess:eth5","PC4:eth1"]
-      mtu: 1500
+    
